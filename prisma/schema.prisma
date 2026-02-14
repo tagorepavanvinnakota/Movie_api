@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  avatarUrl    String?
+  roleId       Int
+  role         Role     @relation(fields: [roleId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wishlists    Wishlist[]
+  ratings      Rating[]
+  reviews      Review[]
+  watchHistory WatchHistory[]
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, movieId])
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, movieId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  content   String
+  isSpoiler Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, movieId])
+  @@index([movieId, createdAt(sort: Desc)])
+}
+
+model WatchHistory {
+  id              String   @id @default(uuid())
+  userId          String
+  movieId         String
+  watchedAt       DateTime @default(now())
+  progressPercent Int?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Movie {
+  id            String    @id @default(uuid())
+  tmdbId        Int       @unique
+  title         String
+  description   String?
+  releaseDate   DateTime?
+  durationMin   Int?
+  posterUrl     String?
+  backdropUrl   String?
+  language      String?
+  popularity    Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  averageRating Float     @default(0)
+  ratingCount   Int       @default(0)
+
+  genres MovieGenre[]
+}
+
+model Genre {
+  id     Int          @id @default(autoincrement())
+  name   String       @unique
+  movies MovieGenre[]
+}
+
+model MovieGenre {
+  movieId String
+  genreId Int
+
+  movie Movie @relation(fields: [movieId], references: [id])
+  genre Genre @relation(fields: [genreId], references: [id])
+
+  @@id([movieId, genreId])
+}
