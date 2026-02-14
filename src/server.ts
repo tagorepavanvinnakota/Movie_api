@@ -45,7 +45,7 @@ const context = async ({ req }: { req: any }): Promise<Context> => {
         };
       }
     } catch {
-      // ignore invalid token → anonymous request
+     
     }
   }
 
